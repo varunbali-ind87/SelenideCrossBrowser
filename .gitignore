@@ -5,10 +5,12 @@ target/
 
 ### IntelliJ IDEA ###
 .idea/**
+MasterThought Reports/**
 
 ### Eclipse ###
 misc.xml
 vcs.xml
+debug.log
 
 ### NetBeans ###
 /nbproject/private/
