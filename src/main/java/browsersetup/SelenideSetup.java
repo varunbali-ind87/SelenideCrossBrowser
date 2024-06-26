@@ -47,11 +47,14 @@ public class SelenideSetup
     @After
     public void closeBrowser(Scenario scenario)
     {
-        clearBrowserLocalStorage();
-        scenario.log("Browser storage cleared.");
-        closeWebDriver();
-        scenario.log("Browser closed.");
-        SelenideBase.removeScenarioThread();
-        scenario.log(String.format("Cleared thread. %sWrapping up the test", System.lineSeparator()));
+        if (WebDriverRunner.hasWebDriverStarted())
+        {
+            clearBrowserLocalStorage();
+            scenario.log("Browser storage cleared.");
+            closeWebDriver();
+            scenario.log("Browser closed.");
+            SelenideBase.removeScenarioThread();
+            scenario.log("Cleared thread.");
+        }
     }
 }
