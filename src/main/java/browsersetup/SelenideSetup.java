@@ -39,7 +39,7 @@ public class SelenideSetup
 
 
     @Before
-    public void setup(Scenario scenario) throws IOException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException, InterruptedException, ConfigurationException, URISyntaxException
+    public void setup(Scenario scenario) throws IOException, InterruptedException, ConfigurationException
     {
         SelenideBase.setScenario(scenario);
         var jsonUtils = new JsonUtils();

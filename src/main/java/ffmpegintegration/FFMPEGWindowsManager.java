@@ -1,28 +1,27 @@
 package ffmpegintegration;
 
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import utilities.UnzipUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import static io.restassured.RestAssured.given;
 
+@Log4j2
 public class FFMPEGWindowsManager implements FFMPEGDownloadManager
 {
 	private static final String FFMPEG_RELEASE_ESSENTIALS_ZIP = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip";
 	public static final String GYAN_DEV_FFMPEG_BUILDS = "https://www.gyan.dev/ffmpeg/builds/";
-	private static final Logger LOGGER = LogManager.getLogger(FFMPEGWindowsManager.class);
 	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir");
 
     public File getFFMPEGBinary() throws IOException, URISyntaxException
@@ -35,7 +34,7 @@ public class FFMPEGWindowsManager implements FFMPEGDownloadManager
             downloadedFile = optional.get();
         else
         {
-            LOGGER.info(FFMPEGSetup.MESSAGE);
+            log.info(FFMPEGSetup.MESSAGE);
             downloadedFile = extractCompressedFile();
         }
         return downloadedFile;
@@ -49,26 +48,14 @@ public class FFMPEGWindowsManager implements FFMPEGDownloadManager
 
 	public File downloadCompressedFile() throws IOException, URISyntaxException
     {
-		var response = given().redirects().follow(false).get(FFMPEG_RELEASE_ESSENTIALS_ZIP).then().assertThat().statusCode(200).extract();
-		var pattern = Pattern.compile("\\b((https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|])");
-		var matcher = pattern.matcher(response.body().asString());
-        if (matcher.find())
-		{
-			// Obtain the download URL
-			String finalURL = matcher.group();
-			LOGGER.info(finalURL);
-
-			// Extract the filename from the download URL
-			String filename = StringUtils.substringAfter(finalURL, "packages/");
-			var file = new File(TEMP_DIR + File.separator + filename);
-			LOGGER.info("Now downloading FFMPEG binary from the server.");
-
-			// Download the file in the OS temp folder
-			FileUtils.copyURLToFile(new URI(finalURL).toURL(), file);
-			return file;
-		}
-		else
-			throw new MalformedURLException("No valid windows binary path was found in the response!");
+		if (StringUtils.isNotBlank(FFMPEGSetup.latestBuildVersion))
+            FFMPEGSetup.latestBuildVersion = getLatestVersion();
+		String zipToDownload = "ffmpeg-" + FFMPEGSetup.latestBuildVersion + "-release-essentials.zip";
+		Path downloadPath = Paths.get(TEMP_DIR, zipToDownload);
+		log.info("Downloading from {}", FFMPEG_RELEASE_ESSENTIALS_ZIP);
+		FileUtils.copyURLToFile(new URI(FFMPEG_RELEASE_ESSENTIALS_ZIP).toURL(), downloadPath.toFile());
+		log.info("Download complete.");
+		return downloadPath.toFile();
 	}
 
 	public synchronized boolean isUpdatePresent()
@@ -79,23 +66,23 @@ public class FFMPEGWindowsManager implements FFMPEGDownloadManager
 		//If the ffmpegbuild.properties file contains build version then compare
 		if (StringUtils.isNotBlank(FFMPEGVersionManager.getInstance().getProperty(FFMPEGVersionManager.WINDOWS_LAST_BUILD)))
 		{
-			LOGGER.info("Checking for latest FFMPEG Windows build...");
+			log.info("Checking for latest FFMPEG Windows build...");
 			FFMPEGSetup.latestBuildVersion = getLatestVersion();
 			if(!FFMPEGVersionManager.getInstance().getProperty(FFMPEGVersionManager.WINDOWS_LAST_BUILD).equalsIgnoreCase(FFMPEGSetup.latestBuildVersion))
 			{
-				LOGGER.info("FFMPEG v{} is available.", FFMPEGSetup.latestBuildVersion);
+				log.info("FFMPEG v{} is available.", FFMPEGSetup.latestBuildVersion);
 				return true;
 			}
 			else
 			{
-				LOGGER.info("No FFMPEG update available.");
+				log.info("No FFMPEG update available.");
 				return false;
 			}
 		}
 		//If the properties file does not contain any build version then return true to force compressed file download from server
 		else
 		{
-			LOGGER.error("OOPS! Looks like there is no value stored in the ffmpegbuild.properties file for {}", FFMPEGVersionManager.WINDOWS_LAST_BUILD);
+			log.error("OOPS! Looks like there is no value stored in the ffmpegbuild.properties file for {}", FFMPEGVersionManager.WINDOWS_LAST_BUILD);
 			return true;
 		}
 	}
@@ -127,7 +114,7 @@ public class FFMPEGWindowsManager implements FFMPEGDownloadManager
     {
 		//Download the file
 		var downloadedCompressedZip = downloadCompressedFile();
-		LOGGER.info("{} was downloaded.", downloadedCompressedZip.getName());
+		log.info("{} was downloaded.", downloadedCompressedZip.getName());
 
 		// Unzip the downloaded ffmpeg file in the OS temp folder
 		UnzipUtil.unzip(downloadedCompressedZip, TEMP_DIR);
@@ -137,7 +124,7 @@ public class FFMPEGWindowsManager implements FFMPEGDownloadManager
 
 		// Get the parent directory starting with the ffmpeg name
 		var parentDir = Arrays.stream(Objects.requireNonNull(files)).filter(file -> file.isDirectory() && file.getName().startsWith("ffmpeg")).findFirst().orElseThrow();
-		LOGGER.info("Unzipped downloaded file to {}", parentDir.getCanonicalPath());
+		log.info("Unzipped downloaded file to {}", parentDir.getCanonicalPath());
 
 		// Get the list of all the files residing the parent directory
 		var executables = FileUtils.listFiles(parentDir, new String[] {"exe"}, true);

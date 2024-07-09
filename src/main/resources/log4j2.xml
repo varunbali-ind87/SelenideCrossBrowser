@@ -3,7 +3,7 @@
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout
-                    pattern="%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%C] %level - %msg%n}{FATAL=Bright red, ERROR=Bright red, WARN=yellow, INFO=magenta, DEBUG=blue}" disableAnsi="false" />
+                    pattern="%highlight{%d{yyyy-MM-dd HH:mm:ss.SSS} [%C] %level - %msg%n}{FATAL=Bright red, ERROR=Bright red, WARN=yellow, INFO=green, DEBUG=blue}" disableAnsi="false" />
         </Console>
         <File name="MyFile" fileName="debug.log" immediateFlush="true"
               append="false">

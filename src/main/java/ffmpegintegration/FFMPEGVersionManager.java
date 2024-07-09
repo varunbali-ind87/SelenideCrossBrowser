@@ -24,7 +24,7 @@ public class FFMPEGVersionManager
 
 	static
 	{
-		FFMPEG_BUILD_PROPERTIES = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test" + File.separator
+		FFMPEG_BUILD_PROPERTIES = System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator
 				+ "resources" + File.separator + "ffmpegbuild.properties";
 	}
 

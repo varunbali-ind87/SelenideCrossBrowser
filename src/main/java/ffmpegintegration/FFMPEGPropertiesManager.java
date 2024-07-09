@@ -5,8 +5,6 @@ import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.PropertiesConfigurationLayout;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.configuration2.io.FileHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileReader;
@@ -19,8 +17,7 @@ public class FFMPEGPropertiesManager
 	public static final String DEFAULT_DISPLAYFFMPEGLOGS_VALUE = "yes";
 	private static final String FRAMERATE = "Framerate";
 	public static final String DEFAULT_FRAMERATE_VALUE = "60";
-	private static final String SETTING_MESSAGE = "Setting {} to {}";
-	private static final String DISPLAYFFMPEGLOGS = "DisplayFFMPEGLogs";
+    private static final String DISPLAYFFMPEGLOGS = "DisplayFFMPEGLogs";
 	private static final String PRESET = "Preset";
 	private static final String FFMPEG_PROPERTIES;
 	public static final String DEFAULT_PRESET_VALUE = "medium";
@@ -28,12 +25,10 @@ public class FFMPEGPropertiesManager
 
 	static
 	{
-		FFMPEG_PROPERTIES = System.getProperty("user.dir") + File.separator + "src" + File.separator + "test" + File.separator
+		FFMPEG_PROPERTIES = System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator
 				+ "resources" + File.separator + "ffmpeg.properties";
 	}
 
-	private PropertiesConfiguration configuration;
-	private PropertiesConfigurationLayout layout;
 	private Properties properties;
 
 	private FFMPEGPropertiesManager()
@@ -80,10 +75,10 @@ public class FFMPEGPropertiesManager
 
 	private void writeFFMPEGProperties() throws ConfigurationException
     {
-		configuration = new PropertiesConfiguration();
-		layout = new PropertiesConfigurationLayout();
+		var configuration = new PropertiesConfiguration();
+		var layout = new PropertiesConfigurationLayout();
 		File file = new File(FFMPEG_PROPERTIES);
-		FileHandler fileHandler = new FileHandler(configuration);
+		var fileHandler = new FileHandler(configuration);
 		configuration.setLayout(layout);
 		layout.setHeaderComment("Properties specified in this file are used by FFMPEG process to create MP4 file.");
 		layout.setComment(FRAMERATE,
