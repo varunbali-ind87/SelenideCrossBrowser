@@ -1,16 +1,15 @@
 package ffmpegintegration;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Objects;
 import lombok.Getter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
 
 public class FFMPEGSetup
 {
@@ -43,7 +42,7 @@ public class FFMPEGSetup
     {
         if (Boolean.FALSE.equals(isSetupDone))
         {
-            String operatingSystem = getOperatingSystem();
+            String operatingSystem = FFMPEGUtils.getOperatingSystem();
 
             // Determines whether to call the Windows or Mac OSX logic based on the OS
             var className = Class.forName(FFMPEGSetup.class.getPackageName() + ".FFMPEG" + operatingSystem + "Manager");
@@ -55,18 +54,7 @@ public class FFMPEGSetup
                 // Delete all pre-existing FFMPEG files
                 LOGGER.info("Deleting all pre-existing FFMPEG binaries to ensure only single binary exists for future use...");
                 var tempDirectoryFile = ffmpegDownloadInstance.getTempDirectoryFile();
-                var listOfFiles = Objects.requireNonNull(tempDirectoryFile.listFiles());
-                Arrays.stream(listOfFiles).filter(file -> file.isFile() && FFMPEG_NAME.equals(file.getName())).findFirst().ifPresent(file ->
-                {
-                    try
-                    {
-                        FileUtils.forceDelete(file);
-                    }
-                    catch (IOException e)
-                    {
-                        throw new RuntimeException(e);
-                    }
-                });
+                FileUtils.cleanDirectory(tempDirectoryFile);
 
                 // Download the FFMPEG binary
                 downloadedFile = ffmpegDownloadInstance.extractCompressedFile();
@@ -80,16 +68,5 @@ public class FFMPEGSetup
 
             isSetupDone = true; // avoid downloading binary for every scenario. It should be once every launch.
         }
-    }
-
-    private static String getOperatingSystem()
-    {
-        String operatingSystem = SystemUtils.OS_NAME;
-        if (operatingSystem.contains(" "))
-        {
-            int indexOfSpace = operatingSystem.indexOf(" ");
-            operatingSystem = operatingSystem.substring(0, indexOfSpace);
-        }
-        return operatingSystem;
     }
 }

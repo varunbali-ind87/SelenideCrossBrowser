@@ -1,26 +1,23 @@
 package ffmpegintegration;
 
-import browsersetup.SelenideBase;
 import com.google.common.util.concurrent.Uninterruptibles;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-import utilities.DateUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Log4j2
 public class FFMPEGRunner
 {
-	//private static final String COMMANDPROMPT = "C:" + File.separator + "Windows" + File.separator + "System32" + File.separator + "cmd.exe";
+	private static final String USERDIR = System.getProperty("user.dir");
+	private static final String TERMINATED_SUCCESSFULLY = "FFMPEG terminated successfully.";
 	private static Process process;
 	private static String outputFile;
 	private static String ffmpegBinary;
@@ -31,41 +28,8 @@ public class FFMPEGRunner
 	{
 	}
 
-	private static String getOutputFilename(String browser) throws IOException
-	{
-		// Create capture directory to store captures if it doesn't exist
-		var outputFile = new File(String.valueOf(Paths.get(System.getProperty("user.dir"), "Captures")));
-		if (!outputFile.exists() || !outputFile.isDirectory())
-			FileUtils.forceMkdir(outputFile);
-
-		// Logic to deduce outputfilename by detecting the Jira ticket ID. If no ticket ID is present then replace with timestamp
-		String scenarioName = SelenideBase.getScenario().getName();
-		scenarioName = scenarioName.replace(" ", "").replaceAll("\\W", "").trim();
-		var builder = new StringBuilder();
-		char[] array = scenarioName.toCharArray();
-		boolean isLastDigit = false;
-
-		// Continue appending until the last digit is detected. At that moment, stop further processing
-		for (int i = 0; i < array.length && !isLastDigit; i++)
-		{
-			if (!Character.isDigit(array[i]) && !builder.isEmpty() && builder.toString().matches(".*\\d.*"))
-				isLastDigit = true;
-			else
-				builder.append(array[i]);
-		}
-
-		// Create final capture name
-		String outputFilename;
-		if (!builder.isEmpty())
-			outputFilename = browser + "_" + builder + "_" + DateUtil.getCurrentTimestamp() + ".mkv";
-		else
-			outputFilename = browser + "_" + DateUtil.getCurrentTimestamp() + ".mkv";
-
-		return String.valueOf(Paths.get(System.getProperty("user.dir"), "Captures", outputFilename));
-	}
-
-	private static void killExistingFFMPEGProcesses() throws IOException, InterruptedException
-	{
+	private static void killExistingFFMPEGProcesses() throws IOException
+    {
 		log.info("Attempting to terminate FFMPEG forcefully...");
 		var process = Runtime.getRuntime().exec(new String[] {"tasklist"});
 		var reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -87,7 +51,7 @@ public class FFMPEGRunner
 	 * @param browser the browser
 	 * @throws IOException the io exception
 	 */
-	public static void startVideoCapture(final String browser) throws IOException, InterruptedException, ConfigurationException
+	public static void startVideoCapture(final String browser) throws IOException, ConfigurationException
     {
 		if (SystemUtils.IS_OS_WINDOWS)
 		{
@@ -96,8 +60,8 @@ public class FFMPEGRunner
 		}
 		FFMPEGPropertiesManager.getInstance().readFFMPEGProperties();
 		final var processBuilder = new ProcessBuilder();
-		outputFile = getOutputFilename(browser);
-		processBuilder.directory(new File(System.getProperty("user.dir")));
+		outputFile = FFMPEGUtils.getOutputFilePath(browser);
+		processBuilder.directory(new File(USERDIR));
 		String ffmpegBinaryPath = FFMPEGSetup.getDownloadedFile().getCanonicalPath();
 		String captureDevice = null;
 		String captureVideoInput = null;
@@ -160,7 +124,7 @@ public class FFMPEGRunner
 				killExistingFFMPEGProcesses();
 			}
 			else
-				log.info("FFMPEG terminated successfully.");
+				log.info(TERMINATED_SUCCESSFULLY);
 		}
 		else if (SystemUtils.IS_OS_MAC)
 		{
@@ -172,7 +136,7 @@ public class FFMPEGRunner
 				process.waitFor();
 			}
 			else
-				log.info("FFMPEG terminated successfully.");
+				log.info(TERMINATED_SUCCESSFULLY);
 		}
 		log.info("Screen capture stopped.");
 		var file = new File(outputFile);

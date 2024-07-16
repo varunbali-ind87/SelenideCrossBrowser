@@ -55,17 +55,9 @@ public class SelenideSetup
     }
 
     @After
-    public void closeBrowser(Scenario scenario) throws IOException, InterruptedException
+    public void closeBrowser() throws IOException, InterruptedException
     {
         FFMPEGRunner.stopVideoCapture();
-        if (WebDriverRunner.hasWebDriverStarted())
-        {
-            clearBrowserLocalStorage();
-            scenario.log("Browser storage cleared.");
-            closeWebDriver();
-            scenario.log("Browser closed.");
-            SelenideBase.removeScenarioThread();
-            scenario.log("Cleared thread.");
-        }
+        SelenideBase.cleanupAndCloseBrowser();
     }
 }
