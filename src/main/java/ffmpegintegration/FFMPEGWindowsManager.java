@@ -43,7 +43,7 @@ public class FFMPEGWindowsManager implements FFMPEGDownloadManager
 	@Override
 	public File getTempDirectoryFile()
 	{
-		return new File(TEMP_DIR);
+		return new File(String.valueOf(Paths.get(TEMP_DIR, "ffmpeg")));
 	}
 
 	public File downloadCompressedFile() throws IOException, URISyntaxException

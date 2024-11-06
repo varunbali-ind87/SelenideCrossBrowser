@@ -114,13 +114,13 @@ public class FFMPEGRunner
 	 */
 	public static void stopVideoCapture() throws InterruptedException, IOException
 	{
-		log.info("Is FFMPEG process alive? {}. Attempting to terminate it gracefully.", process.isAlive());
+		log.info("Attempting to terminate ffmpeg.exe.");
 		if (SystemUtils.IS_OS_WINDOWS)
 		{
 			stopFFMPEGProcess();
 			if (process.isAlive())
 			{
-				log.error("Graceful termination of FFMPEG failed.");
+				log.error("Termination of FFMPEG failed.");
 				killExistingFFMPEGProcesses();
 			}
 			else
@@ -163,9 +163,7 @@ public class FFMPEGRunner
 			catch (IOException e)
 			{
 				if (!e.getMessage().contains("Stream closed"))
-				{
-					log.error("FFMPEG still running", e);
-				}
+                    log.error("FFMPEG still running", e);
 			}
 		}
 	}

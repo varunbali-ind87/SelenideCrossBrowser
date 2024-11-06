@@ -1,6 +1,7 @@
 package ffmpegintegration;
 
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -11,9 +12,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 
+@Log4j2
 public class FFMPEGSetup
 {
-    private static final Logger LOGGER = LogManager.getLogger(FFMPEGSetup.class);
     static final String MESSAGE = "OOPS! Looks like FFMPEG binary was deleted by someone.";
     static final String WIN_FFMPEG_BINARY = "ffmpeg.exe";
     private static boolean isSetupDone = false;
@@ -52,9 +53,13 @@ public class FFMPEGSetup
             if (ffmpegDownloadInstance.isUpdatePresent())
             {
                 // Delete all pre-existing FFMPEG files
-                LOGGER.info("Deleting all pre-existing FFMPEG binaries to ensure only single binary exists for future use...");
+                log.info("Checking for pre-existing binaries...");
                 var tempDirectoryFile = ffmpegDownloadInstance.getTempDirectoryFile();
-                FileUtils.cleanDirectory(tempDirectoryFile);
+                if (tempDirectoryFile.exists() && tempDirectoryFile.listFiles() != null)
+                {
+                    log.info("Deleting older binaries..");
+                    FileUtils.cleanDirectory(tempDirectoryFile);
+                }
 
                 // Download the FFMPEG binary
                 downloadedFile = ffmpegDownloadInstance.extractCompressedFile();
